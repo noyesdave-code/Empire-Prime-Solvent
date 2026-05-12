@@ -1,0 +1,51 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  NODE_ENV: production
+  VITE_SUPABASE_URL: https://lkzxpvleikvvbuhmsgaa.supabase.co
+  VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_hSVlNSRqpzHDV_QFu5ODIw_fXSmFwbz
+  VITE_SUPABASE_PROJECT_ID: lkzxpvleikvvbuhmsgaa
+  VITE_PAYMENTS_CLIENT_TOKEN: live_821a1eef30c4b062032f6b6138f
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Build
+        run: npm run build -- --base=/${{ github.event.repository.name }}/
+      - name: SPA fallback + nojekyll
+        run: |
+          cp dist/index.html dist/404.html
+          touch dist/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
