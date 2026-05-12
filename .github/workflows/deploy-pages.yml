@@ -31,12 +31,7 @@ jobs:
           node-version: 20
       - name: Install dependencies
         shell: bash
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+        run: npm install --include=dev
       - name: Build
         run: npm run build -- --base=/${{ github.event.repository.name }}/
       - name: SPA fallback + nojekyll
