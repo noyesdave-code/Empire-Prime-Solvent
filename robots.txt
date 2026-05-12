@@ -1,0 +1,45 @@
+# Unicorn AI Builder — robots policy
+# IP & strategy surfaces are walled off from crawlers.
+
+User-agent: Googlebot
+Allow: /
+Disallow: /boardroom
+Disallow: /boardroom/
+Disallow: /auth
+Disallow: /reset-password
+
+User-agent: Bingbot
+Allow: /
+Disallow: /boardroom
+Disallow: /boardroom/
+Disallow: /auth
+Disallow: /reset-password
+
+User-agent: Twitterbot
+Allow: /
+Disallow: /boardroom
+
+User-agent: facebookexternalhit
+Allow: /
+Disallow: /boardroom
+
+User-agent: GPTBot
+Disallow: /boardroom
+Disallow: /boardroom/
+
+User-agent: ClaudeBot
+Disallow: /boardroom
+Disallow: /boardroom/
+
+User-agent: CCBot
+Disallow: /boardroom
+Disallow: /boardroom/
+
+User-agent: *
+Allow: /
+Disallow: /boardroom
+Disallow: /boardroom/
+Disallow: /auth
+Disallow: /reset-password
+
+Sitemap: https://unicornaibuilder.lovable.app/sitemap.xml
