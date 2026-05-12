@@ -80,7 +80,7 @@ export default function Messages() {
     load();
 
     const channel = supabase
-      .channel("direct_messages_self")
+      .channel(`dm-${user.id}`)
       .on("postgres_changes", {
         event: "INSERT", schema: "public", table: "direct_messages",
         filter: `recipient_id=eq.${user.id}`,
