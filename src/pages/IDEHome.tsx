@@ -5,13 +5,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useBuildAttempts } from "@/hooks/useBuildAttempts";
 import { BuildPaywall } from "@/components/BuildPaywall";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Code2, Rocket, Trash2, ShieldCheck, GitPullRequest, Sparkles } from "lucide-react";
+import { Loader2, Code2, Rocket, Trash2, ShieldCheck, GitPullRequest, Sparkles, LogOut } from "lucide-react";
 
 type Project = { id: string; name: string; slug: string; primary_language: string; updated_at: string; is_public: boolean };
 type Template = { id: string; slug: string; name: string; description: string | null; language: string; icon: string | null };
 
 export default function IDEHome() {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const nav = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -24,6 +24,8 @@ export default function IDEHome() {
   const unlimited = buildStatus.reason === "admin unlimited" || buildStatus.reason === "paid unlimited";
 
   useEffect(() => {
+    if (loading) return;
+    if (!user) { nav("/auth?next=/ide", { replace: true }); return; }
     document.title = "Empire IDE — sovereign cloud dev";
     (async () => {
       const [p, t] = await Promise.all([
@@ -33,7 +35,7 @@ export default function IDEHome() {
       setProjects((p.data ?? []) as any);
       setTemplates((t.data ?? []) as any);
     })();
-  }, [user]);
+  }, [user, loading, nav]);
 
   useEffect(() => {
     if (!user) return;
@@ -85,7 +87,12 @@ export default function IDEHome() {
     setProjects(p => p.filter(x => x.id !== id));
   };
 
-  if (loading) return <div className="min-h-screen grid place-items-center bg-black text-white"><Loader2 className="animate-spin" /></div>;
+  const handleSignOut = async () => {
+    await signOut();
+    nav("/auth?next=/ide", { replace: true });
+  };
+
+  if (loading || !user) return <div className="min-h-screen grid place-items-center bg-black text-white"><Loader2 className="animate-spin" /></div>;
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -120,6 +127,9 @@ export default function IDEHome() {
                 <GitPullRequest size={16}/> Empire GitHub
               </Link>
             )}
+            <button onClick={handleSignOut} className="px-3 py-2 rounded-lg border border-zinc-800 text-zinc-300 hover:bg-zinc-900 flex items-center gap-2 text-sm">
+              <LogOut size={14}/> Sign out
+            </button>
             {!user && <Link to="/auth?next=/ide" className="px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 font-bold">Sign in to build</Link>}
           </div>
         </header>
