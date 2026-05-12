@@ -1,0 +1,582 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 4%;
+    --foreground: 152 95% 78%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 152 95% 80%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 152 95% 80%;
+
+    --primary: 152 100% 68%;
+    --primary-foreground: 0 0% 4%;
+
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 152 95% 80%;
+
+    --muted: 0 0% 12%;
+    --muted-foreground: 152 60% 78%;
+
+    --accent: 42 100% 70%;
+    --accent-foreground: 0 0% 4%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 16%;
+    --input: 0 0% 16%;
+    --ring: 158 84% 52%;
+
+    --radius: 1rem;
+
+    /* Empire brand tokens */
+    --emerald: 152 90% 60%;
+    --emerald-glow: 152 100% 72%;
+    --marble: 0 0% 95%;
+    --marble-glow: 0 0% 100%;
+    --gold: 42 100% 65%;
+    --maroon: 350 75% 55%;
+    --maroon-glow: 350 90% 65%;
+    --obsidian: 0 0% 4%;
+    --silver: 0 0% 78%;
+
+    --gradient-emerald: linear-gradient(135deg, hsl(152 90% 60%), hsl(168 100% 55%));
+    --gradient-marble: linear-gradient(135deg, hsl(0 0% 100%), hsl(0 0% 75%));
+    --gradient-gold: linear-gradient(135deg, hsl(42 100% 65%), hsl(32 100% 58%));
+    --gradient-maroon: linear-gradient(135deg, hsl(350 80% 60%), hsl(15 90% 60%));
+    --gradient-empire: linear-gradient(135deg, hsl(152 90% 62%) 0%, hsl(42 100% 65%) 50%, hsl(350 80% 62%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top, hsl(152 90% 60% / 0.18), transparent 60%), radial-gradient(ellipse at bottom, hsl(350 75% 55% / 0.12), transparent 60%);
+
+    --glass-bg: 0 0% 100% / 0.04;
+    --glass-border: 0 0% 100% / 0.08;
+    --shadow-glass: 0 8px 32px 0 hsl(0 0% 0% / 0.5);
+    --shadow-glow-emerald: 0 0 60px hsl(158 84% 52% / 0.4);
+    --shadow-glow-gold: 0 0 60px hsl(45 93% 58% / 0.3);
+
+    /* Caribbean — fluorescent bright cyan/teal for customer-facing pages */
+    --caribbean: 188 100% 50%;
+    --caribbean-glow: 185 100% 65%;
+    --caribbean-deep: 192 90% 40%;
+    --caribbean-mint: 175 95% 78%;
+    --caribbean-sand: 180 50% 98%;
+    --gradient-caribbean: linear-gradient(135deg, hsl(188 100% 52%) 0%, hsl(180 100% 58%) 50%, hsl(170 100% 64%) 100%);
+    --gradient-caribbean-hero: radial-gradient(ellipse at top, hsl(185 100% 70% / 0.65), transparent 60%), radial-gradient(ellipse at bottom, hsl(188 100% 55% / 0.4), transparent 60%);
+  }
+}
+
+/* Caribbean theme — scoped to Unicorn Box landing only */
+.theme-caribbean {
+  --background: 180 40% 97%;
+  --foreground: 195 60% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 195 60% 15%;
+  --primary: 178 78% 42%;
+  --primary-foreground: 0 0% 100%;
+  --muted: 180 30% 92%;
+  --muted-foreground: 195 30% 38%;
+  --border: 180 40% 85%;
+  --ring: 178 78% 42%;
+}
+.theme-caribbean .glass {
+  background: hsl(0 0% 100% / 0.75);
+  backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid hsl(178 78% 42% / 0.18);
+  box-shadow: 0 8px 28px hsl(190 80% 30% / 0.08);
+}
+.theme-caribbean .glass-strong {
+  background: hsl(0 0% 100% / 0.92);
+  border: 1px solid hsl(178 78% 42% / 0.25);
+  box-shadow: 0 12px 40px hsl(190 80% 30% / 0.12);
+}
+.theme-caribbean .grid-bg {
+  background-image:
+    linear-gradient(hsl(178 78% 42% / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(178 78% 42% / 0.06) 1px, transparent 1px);
+}
+.text-gradient-caribbean {
+  background: var(--gradient-caribbean);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 18px hsl(var(--caribbean-glow) / 0.4));
+}
+.text-deep-caribbean { color: hsl(var(--caribbean-deep)); }
+.text-caribbean { color: hsl(var(--caribbean)); }
+
+/* Bright fluorescent Caribbean text — customer-facing pop */
+.text-fluoro-caribbean {
+  color: hsl(185 100% 72%);
+  text-shadow: 0 0 1px hsl(185 100% 72%), 0 0 12px hsl(188 100% 55% / 0.7);
+}
+.text-mega-fluoro-caribbean {
+  color: hsl(185 100% 78%);
+  text-shadow:
+    0 0 2px hsl(185 100% 78%),
+    0 0 14px hsl(188 100% 60% / 0.85),
+    0 0 36px hsl(188 100% 50% / 0.55);
+}
+.text-flagship-caribbean {
+  color: hsl(var(--caribbean-glow));
+  text-shadow: 0 0 1px hsl(var(--caribbean-glow)), 0 0 12px hsl(var(--caribbean) / 0.6);
+}
+.border-fluoro-caribbean {
+  border-color: hsl(185 100% 65%) !important;
+  box-shadow: 0 0 18px hsl(188 100% 55% / 0.45), inset 0 0 12px hsl(188 100% 60% / 0.18);
+}
+.btn-fluoro-caribbean {
+  background: var(--gradient-caribbean);
+  color: hsl(195 90% 12%);
+  font-weight: 700;
+  border: 2px solid hsl(185 100% 70%);
+  box-shadow: 0 0 22px hsl(188 100% 55% / 0.55);
+}
+.btn-fluoro-caribbean:hover { filter: brightness(1.08); }
+
+/* Caribbean accent scope — blue + white only, no fuzz */
+.caribbean-accent {
+  --foreground: 0 0% 100%;
+  --card-foreground: 0 0% 100%;
+  --primary: 185 100% 58%;
+  --primary-foreground: 195 90% 10%;
+  --secondary-foreground: 0 0% 100%;
+  --muted-foreground: 0 0% 100%;
+  --accent: 0 0% 100%;
+  --emerald: 185 100% 58%;
+  --emerald-glow: 185 100% 78%;
+  --gold: 0 0% 100%;
+  --maroon: 185 100% 58%;
+  --maroon-glow: 185 100% 78%;
+  --glass-bg: 185 100% 42% / 0.18;
+  --glass-border: 185 100% 64% / 1;
+  --gradient-hero: none;
+}
+.caribbean-accent .glass,
+.caribbean-accent .glass-strong {
+  background: hsl(185 100% 42% / 0.18) !important;
+  border: 3px solid hsl(185 100% 62%) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: hsl(0 0% 100%) !important;
+}
+.caribbean-accent .text-flagship-emerald,
+.caribbean-accent .text-mega-fluoro,
+.caribbean-accent .text-fluoro {
+  color: hsl(0 0% 100%) !important;
+  text-shadow: none !important;
+}
+.caribbean-accent .text-gradient-emerald,
+.caribbean-accent .text-gradient-empire {
+  background: none !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: hsl(0 0% 100%) !important;
+  filter: none !important;
+}
+/* Yellow → crisp white inside Caribbean scope */
+.caribbean-accent .text-fluoro-gold,
+.caribbean-accent .text-flagship-gold,
+.caribbean-accent .text-accent {
+  color: hsl(0 0% 100%) !important;
+  text-shadow: none !important;
+}
+/* Maroon/red → Caribbean blue inside Caribbean scope */
+.caribbean-accent .text-flagship-maroon,
+.caribbean-accent .text-fluoro-maroon,
+.caribbean-accent [class*="maroon"] {
+  color: hsl(185 100% 78%) !important;
+  text-shadow: none !important;
+}
+.caribbean-accent .border-primary,
+.caribbean-accent .border-primary\/80,
+.caribbean-accent .border-primary\/60,
+.caribbean-accent .border-primary\/40 {
+  border-color: hsl(185 100% 65%) !important;
+  box-shadow: none !important;
+}
+.caribbean-accent [class*="ring-"] {
+  --tw-ring-color: hsl(185 100% 62% / 1) !important;
+  box-shadow: 0 0 0 3px hsl(185 100% 62%) !important;
+}
+.caribbean-accent .bg-gradient-to-r,
+.caribbean-accent .bg-gradient-to-br {
+  background-image: none !important;
+  background-color: hsl(185 100% 55%) !important;
+}
+.caribbean-accent img {
+  filter: grayscale(1) brightness(2.6) contrast(2) hue-rotate(145deg) saturate(0) !important;
+}
+.caribbean-accent .animate-pulse {
+  animation: none !important;
+}
+.caribbean-accent [class*="text-muted"],
+.caribbean-accent [class*="text-flagship"],
+.caribbean-accent [class*="text-fluoro"],
+.caribbean-accent h1,
+.caribbean-accent h2,
+.caribbean-accent h3,
+.caribbean-accent h4,
+.caribbean-accent p,
+.caribbean-accent li,
+.caribbean-accent span {
+  color: hsl(0 0% 100%) !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: hsl(0 0% 100%) !important;
+}
+.caribbean-accent section a,
+.caribbean-accent section a *,
+.caribbean-accent section .glass,
+.caribbean-accent section .glass *,
+.caribbean-accent section .glass-strong,
+.caribbean-accent section .glass-strong * {
+  color: hsl(0 0% 100%) !important;
+  -webkit-text-fill-color: hsl(0 0% 100%) !important;
+  text-shadow: none !important;
+}
+.caribbean-accent .veil-card,
+.caribbean-accent .veil-card *:not(.bg-primary) {
+  color: hsl(0 0% 100%) !important;
+  -webkit-text-fill-color: hsl(0 0% 100%) !important;
+  text-shadow: none !important;
+  background-image: none !important;
+}
+.caribbean-accent .veil-card {
+  background-color: hsl(185 100% 42% / 0.18) !important;
+  border: 4px solid hsl(185 100% 62%) !important;
+}
+.caribbean-accent .bg-primary { background-color: hsl(185 100% 55%) !important; color: hsl(195 90% 12%) !important; }
+.caribbean-accent .unicorn-chat-shell {
+  box-shadow: 0 0 0 1px hsl(185 100% 70%) inset !important;
+  border: 3px solid hsl(185 100% 60%) !important;
+}
+.caribbean-accent .unicorn-chat-answer { box-shadow: none !important; border: 3px solid hsl(185 100% 60%) !important; color: hsl(0 0% 100%) !important; }
+.caribbean-accent .unicorn-chat-input {
+  border: 3px solid hsl(185 100% 60%) !important;
+  color: hsl(0 0% 100%) !important;
+  caret-color: hsl(185 100% 70%) !important;
+  box-shadow: none !important;
+}
+.caribbean-accent .unicorn-chat-input::placeholder { color: hsl(0 0% 100% / 0.7) !important; }
+.caribbean-accent .unicorn-chat-input:focus { box-shadow: 0 0 0 2px hsl(185 100% 70%) !important; border-color: hsl(185 100% 70%) !important; }
+/* Kill all heavy glows/blurs in Caribbean scope */
+.caribbean-accent [class*="drop-shadow"],
+.caribbean-accent [class*="shadow-"] { filter: none !important; }
+.caribbean-accent .blur-3xl, .caribbean-accent .blur-2xl, .caribbean-accent .blur-xl { filter: blur(0) !important; opacity: 0 !important; }
+.caribbean-accent .animate-float, .caribbean-accent .animate-pulse-glow { animation: none !important; }
+
+@layer base {
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+  html { scroll-behavior: smooth; }
+}
+
+@layer components {
+  /* === Unicorn chat box tokens (single source of truth for AskUnicorn boxes) === */
+  /* Shared chat tokens — used by BOTH LandingVeil and AskUnicorn */
+  :root {
+    --chat-pad-x: 1.25rem;
+    --chat-pad-y: 1.25rem;
+    --chat-radius: 1rem;
+    --chat-line-height: 2;          /* double-spaced lines on Enter */
+    --chat-font-size: 1rem;
+    --chat-font-size-md: 1.0625rem;
+    --chat-min-h: 240px;
+    --chat-input-min-h: 180px;
+    --chat-answer-max-h: 22rem;
+    --chat-answer-max-w: 65ch;
+  }
+  .unicorn-chat-shell {
+    @apply rounded-2xl bg-card border-2 border-primary/80 shadow-[0_0_36px_hsl(var(--emerald)/0.6),0_0_80px_hsl(var(--emerald)/0.35)];
+    padding: var(--chat-pad-y) var(--chat-pad-x);
+    min-height: var(--chat-min-h);
+    contain: content;
+  }
+  .unicorn-chat-answer:focus { outline: none; }
+   .unicorn-chat-input {
+     @apply w-full resize-none rounded-xl bg-background/95 font-medium text-fluoro border-2 border-[hsl(var(--emerald-glow))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--emerald-glow))] focus:border-[hsl(var(--emerald-glow))] caret-[hsl(var(--emerald-glow))] placeholder:text-[hsl(var(--emerald-glow)/0.7)] shadow-[inset_0_0_18px_hsl(var(--emerald)/0.25)] align-top;
+     padding: var(--chat-pad-y) var(--chat-pad-x);
+     font-size: var(--chat-font-size);
+     line-height: var(--chat-line-height);
+     min-height: var(--chat-input-min-h);
+     box-sizing: border-box;
+     max-width: 100%;
+     word-break: break-word;
+     overflow-wrap: anywhere;
+     white-space: pre-wrap;
+   }
+   .unicorn-chat-shell { max-width: 100%; overflow-x: hidden; }
+  .unicorn-chat-input::placeholder { vertical-align: top; line-height: var(--chat-line-height); }
+  @media (min-width: 768px) {
+    .unicorn-chat-input { font-size: var(--chat-font-size-md); }
+  }
+  .unicorn-chat-answer {
+    @apply mt-4 overflow-y-auto rounded-lg bg-background text-fluoro whitespace-pre-wrap border-2 border-[hsl(var(--emerald-glow))] shadow-[0_0_24px_hsl(var(--emerald)/0.55)];
+    padding: var(--chat-pad-y) var(--chat-pad-x);
+    font-size: var(--chat-font-size);
+    line-height: 1.75;
+    max-height: var(--chat-answer-max-h);
+    max-width: var(--chat-answer-max-w);
+  }
+  .unicorn-chat-meter {
+    @apply text-[10px] font-semibold text-fluoro-gold;
+  }
+  .unicorn-chat-meter-low {
+    @apply text-[10px] font-semibold text-[hsl(var(--maroon))];
+  }
+  .unicorn-chat-btn {
+    @apply inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground border-2 border-primary hover:bg-primary/90 disabled:opacity-50;
+  }
+
+  .glass {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: var(--shadow-glass);
+  }
+  .glass-strong {
+    background: hsl(0 0% 100% / 0.06);
+    backdrop-filter: blur(30px) saturate(200%);
+    -webkit-backdrop-filter: blur(30px) saturate(200%);
+    border: 1px solid hsl(0 0% 100% / 0.12);
+  }
+  /* Site-wide rule: all "gradient" text marks render solid white.
+     Owner directive — keep brand text white everywhere, no green/marble fills. */
+  .text-gradient-emerald,
+  .text-gradient-marble,
+  .text-gradient-empire {
+    background: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    -webkit-text-fill-color: hsl(0 0% 100%);
+    color: hsl(0 0% 100%);
+    filter: none;
+  }
+  .text-gradient-maroon {
+    background: var(--gradient-maroon);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 18px hsl(350 80% 60% / 0.45));
+  }
+  .text-gradient-empire {
+    background: var(--gradient-empire);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 24px hsl(42 100% 65% / 0.35));
+  }
+  .text-gradient-sapphire {
+    background: var(--gradient-sapphire);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 22px hsl(var(--sapphire) / 0.55));
+  }
+  .text-flagship-sapphire {
+    color: hsl(var(--sapphire-glow));
+    text-shadow: 0 0 1px hsl(var(--sapphire-glow)), 0 0 12px hsl(var(--sapphire) / 0.55);
+  }
+  .text-fluoro-sapphire {
+    color: hsl(205 100% 82%);
+  }
+  .text-fluoro {
+    color: hsl(152 100% 82%);
+    text-shadow: none;
+  }
+  .text-fluoro-maroon {
+    color: hsl(350 100% 78%);
+    text-shadow: none;
+  }
+  .text-fluoro-gold {
+    color: hsl(42 100% 78%);
+    text-shadow: none;
+  }
+  .text-fluoro-white {
+    color: hsl(0 0% 100%);
+    text-shadow: none;
+  }
+  .text-mega-fluoro {
+    color: hsl(152 100% 78%);
+    text-shadow: 0 0 1px hsl(152 100% 70%);
+  }
+  .text-flagship-emerald {
+    color: hsl(var(--emerald-glow));
+    text-shadow: 0 0 1px hsl(var(--emerald-glow)), 0 0 10px hsl(var(--emerald) / 0.5);
+  }
+  .text-flagship-marble {
+    color: hsl(var(--marble-glow));
+    text-shadow: 0 0 1px hsl(var(--marble-glow)), 0 0 10px hsl(var(--emerald-glow) / 0.4);
+  }
+  .text-flagship-gold {
+    color: hsl(var(--gold));
+    text-shadow: 0 0 1px hsl(var(--gold)), 0 0 10px hsl(var(--gold) / 0.5);
+  }
+  .text-flagship-maroon {
+    color: hsl(var(--maroon-glow));
+    text-shadow: 0 0 1px hsl(var(--maroon-glow)), 0 0 10px hsl(var(--maroon) / 0.5);
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(hsl(0 0% 100% / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(0 0% 100% / 0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 30px hsl(158 84% 52% / 0.3); }
+  50% { box-shadow: 0 0 60px hsl(158 84% 52% / 0.6); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+
+/* ============================================================
+   FOCUS MODE — toggle .focus-mode on <html> or <body>
+   Strips blurs, glows, and heavy shadows for maximum clarity.
+   Preserves colors, layout, and brightness.
+   ============================================================ */
+.focus-mode,
+.focus-mode * {
+  text-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.focus-mode *,
+.focus-mode *::before,
+.focus-mode *::after {
+  box-shadow: none !important;
+}
+
+.focus-mode *:focus-visible {
+  box-shadow: 0 0 0 2px hsl(var(--ring)) !important;
+}
+
+/* Solidify glass so it stays readable without blur */
+.focus-mode .glass,
+.focus-mode .glass-strong {
+  background: hsl(var(--card)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Replace gradient/glow text with solid crisp color */
+.focus-mode .text-gradient-emerald,
+.focus-mode .text-flagship-emerald,
+.focus-mode .text-fluoro {
+  background: none !important;
+  -webkit-text-fill-color: hsl(var(--emerald-glow)) !important;
+  color: hsl(var(--emerald-glow)) !important;
+}
+.focus-mode .text-gradient-marble,
+.focus-mode .text-flagship-marble,
+.focus-mode .text-fluoro-white,
+.focus-mode .text-mega-fluoro {
+  background: none !important;
+  -webkit-text-fill-color: hsl(var(--marble-glow)) !important;
+  color: hsl(var(--marble-glow)) !important;
+}
+.focus-mode .text-gradient-empire,
+.focus-mode .text-flagship-gold,
+.focus-mode .text-fluoro-gold {
+  background: none !important;
+  -webkit-text-fill-color: hsl(var(--gold)) !important;
+  color: hsl(var(--gold)) !important;
+}
+.focus-mode .text-gradient-maroon,
+.focus-mode .text-flagship-maroon,
+.focus-mode .text-fluoro-maroon {
+  background: none !important;
+  -webkit-text-fill-color: hsl(var(--maroon-glow)) !important;
+  color: hsl(var(--maroon-glow)) !important;
+}
+
+/* Disable ambient motion/glow loops */
+.focus-mode .animate-pulse-glow,
+.focus-mode .animate-float {
+  animation: none !important;
+}
+
+/* Final veil lock: nothing after this can turn flagship/product box text green or yellow. */
+.caribbean-accent,
+.caribbean-accent *,
+.caribbean-accent *::before,
+.caribbean-accent *::after,
+.focus-mode .caribbean-accent,
+.focus-mode .caribbean-accent *,
+.focus-mode .caribbean-accent *::before,
+.focus-mode .caribbean-accent *::after,
+.caribbean-accent .veil-card,
+.caribbean-accent .veil-card *,
+.focus-mode .caribbean-accent .veil-card,
+.focus-mode .caribbean-accent .veil-card * {
+  color: hsl(0 0% 100%) !important;
+  -webkit-text-fill-color: hsl(0 0% 100%) !important;
+  text-shadow: none !important;
+  background-image: none !important;
+}
+
+/* Caribbean override: icons, links, placeholders, inputs all locked white */
+.caribbean-accent svg,
+.caribbean-accent svg *,
+.caribbean-accent [data-lucide],
+.caribbean-accent a,
+.caribbean-accent a *,
+.caribbean-accent button:not(.bg-primary):not(.btn-fluoro-caribbean),
+.caribbean-accent button:not(.bg-primary):not(.btn-fluoro-caribbean) *,
+.caribbean-accent label,
+.caribbean-accent small,
+.caribbean-accent strong,
+.caribbean-accent em,
+.caribbean-accent code,
+.caribbean-accent blockquote {
+  color: hsl(0 0% 100%) !important;
+  -webkit-text-fill-color: hsl(0 0% 100%) !important;
+  fill: hsl(0 0% 100%) !important;
+  stroke: hsl(0 0% 100%) !important;
+  text-shadow: none !important;
+}
+.caribbean-accent input::placeholder,
+.caribbean-accent textarea::placeholder,
+.caribbean-accent [contenteditable]:empty::before {
+  color: hsl(0 0% 100% / 0.75) !important;
+  -webkit-text-fill-color: hsl(0 0% 100% / 0.75) !important;
+  opacity: 1 !important;
+}
+.caribbean-accent input,
+.caribbean-accent textarea,
+.caribbean-accent select {
+  color: hsl(0 0% 100%) !important;
+  -webkit-text-fill-color: hsl(0 0% 100%) !important;
+  caret-color: hsl(185 100% 70%) !important;
+  border-color: hsl(185 100% 62%) !important;
+}
+/* Keep accents/boxes/borders Caribbean — only color is overridden, not background or border */
+.caribbean-accent .bg-primary,
+.caribbean-accent .btn-fluoro-caribbean {
+  color: hsl(195 90% 12%) !important;
+  -webkit-text-fill-color: hsl(195 90% 12%) !important;
+}
+.caribbean-accent .bg-primary svg,
+.caribbean-accent .btn-fluoro-caribbean svg {
+  fill: hsl(195 90% 12%) !important;
+  stroke: hsl(195 90% 12%) !important;
+  color: hsl(195 90% 12%) !important;
+}

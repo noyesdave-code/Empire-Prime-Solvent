@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Only service_role can write user_roles" ON public.user_roles;

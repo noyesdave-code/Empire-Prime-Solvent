@@ -1,0 +1,1 @@
+drop policy "Anyone can insert their intake" on public.blueprints;

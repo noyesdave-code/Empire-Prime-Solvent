@@ -1,0 +1,94 @@
+project_id = "lkzxpvleikvvbuhmsgaa"
+
+[functions.unicorn-ask]
+verify_jwt = false
+
+[functions.health]
+verify_jwt = false
+
+[functions.unicorn-image]
+verify_jwt = false
+
+[functions.get-paddle-price]
+verify_jwt = false
+
+[functions.payments-webhook]
+verify_jwt = false
+
+[functions.process-email-queue]
+verify_jwt = true
+
+[functions.blueprint-generate]
+verify_jwt = false
+
+[functions.swarm-outreach]
+verify_jwt = false
+
+[functions.swarm-seo-content]
+verify_jwt = false
+
+[functions.swarm-defense-intel]
+verify_jwt = false
+
+[functions.swarm-abandoned-cart]
+verify_jwt = false
+
+[functions.swarm-brand-defense]
+verify_jwt = false
+
+[functions.swarm-pricing]
+verify_jwt = false
+
+[functions.swarm-sourcing]
+verify_jwt = false
+
+[functions.fulfill-order]
+verify_jwt = true
+
+[functions.unicorn-research]
+verify_jwt = false
+
+[functions.swarm-archive-answers]
+verify_jwt = false
+
+[functions.security-pentest]
+verify_jwt = false
+
+[functions.security-regression]
+verify_jwt = true
+
+[functions.ide-run]
+verify_jwt = false
+
+[functions.ide-fork]
+verify_jwt = false
+
+[functions.ide-agent]
+verify_jwt = false
+
+[functions.ide-github-deploy]
+verify_jwt = false
+
+[functions.empire-pr-patch]
+verify_jwt = false
+
+[functions.ide-github-oauth-initiate]
+verify_jwt = false
+
+[functions.ide-github-oauth-callback]
+verify_jwt = false
+
+[functions.ide-vercel-deploy]
+verify_jwt = false
+
+[functions.empire-github-deploy]
+verify_jwt = false
+
+[functions.ide-build-attempt]
+verify_jwt = false
+
+[functions.uptime-ping]
+verify_jwt = false
+
+[functions.ani-ideas-board]
+verify_jwt = false

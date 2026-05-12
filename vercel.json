@@ -1,0 +1,28 @@
+{
+  "framework": "vite",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "trailingSlash": false,
+  "env": {
+    "VITE_SUPABASE_URL": "https://lkzxpvleikvvbuhmsgaa.supabase.co",
+    "VITE_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_hSVlNSRqpzHDV_QFu5ODIw_fXSmFwbz",
+    "VITE_SUPABASE_PROJECT_ID": "lkzxpvleikvvbuhmsgaa",
+    "VITE_PAYMENTS_CLIENT_TOKEN": "live_821a1eef30c4b062032f6b6138f"
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" }
+      ]
+    }
+  ]
+}
