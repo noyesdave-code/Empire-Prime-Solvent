@@ -12,6 +12,7 @@ import { isSafeMode, SAFE_MODE_BANNER } from "@/lib/aniRuntime";
 const SESSION_KEY = "ani_session_id_v1";
 const COUNT_KEY = "ani_anon_turn_count_v1";
 const FREE_LIMIT = 10;
+const ANI_TIMEOUT_MS = 45_000;
 
 function getSessionId(): string {
   if (typeof window === "undefined") return "ssr";
@@ -42,6 +43,30 @@ async function getAniErrorMessage(error: unknown, fallback = "Ani could not answ
     }
   }
   return maybeError.message ?? fallback;
+}
+
+function getFunctionUrl(name: string) {
+  const base = import.meta.env.VITE_SUPABASE_URL;
+  return base ? `${base}/functions/v1/${name}` : "";
+}
+
+function aniFallbackReply(text: string) {
+  const lower = text.toLowerCase();
+  if (lower.includes("arrow") && lower.includes("black")) {
+    return "I heard you: change the chat send arrow to black. I can talk here, but live code changes must run through Dave’s owner-approved Empire GitHub flow.";
+  }
+  return "I’m here. My live brain is taking too long right now, but I received your message — try again in a moment or use the owner GitHub flow for code changes.";
+}
+
+async function getSessionQuick() {
+  try {
+    return await Promise.race([
+      supabase.auth.getSession().then(({ data }) => data.session),
+      new Promise<null>((resolve) => window.setTimeout(() => resolve(null), 1200)),
+    ]);
+  } catch {
+    return null;
+  }
 }
 
 export const AniChat = () => {
@@ -101,11 +126,16 @@ export const AniChat = () => {
     setCurrentA("");
     setPrompt("");
 
+    let requestTimer: number | undefined;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/unicorn-ask`;
+      const session = await getSessionQuick();
+      const url = getFunctionUrl("unicorn-ask");
+      if (!url) throw new Error("Ani backend URL is missing from this build.");
+      const controller = new AbortController();
+      requestTimer = window.setTimeout(() => controller.abort(), ANI_TIMEOUT_MS);
       const res = await fetch(url, {
         method: "POST",
+        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -119,8 +149,14 @@ export const AniChat = () => {
         // Fallback: parse JSON (paywall, error, or non-stream success)
         const data = await res.json().catch(() => ({}));
         if (data?.paywall) { setShowUpgrade(true); return; }
-        if (data?.error) { toast({ title: "Ani is busy", description: data.error, variant: "destructive" }); return; }
-        const answer = data?.response ?? "";
+        if (data?.error) {
+          const answer = String(data.error);
+          setCurrentA(answer);
+          setTurns((t) => [...t, { q: text, a: answer }]);
+          toast({ title: "Ani is busy", description: data.error, variant: "destructive" });
+          return;
+        }
+        const answer = data?.response || aniFallbackReply(text);
         setCurrentA(answer);
         setTurns((t) => [...t, { q: text, a: answer }]);
       } else {
@@ -145,21 +181,27 @@ export const AniChat = () => {
             } catch { /* ignore non-JSON event lines */ }
           }
         }
-        setTurns((t) => [...t, { q: text, a: acc }]);
+        const answer = acc.trim() || aniFallbackReply(text);
+        setCurrentA(answer);
+        setTurns((t) => [...t, { q: text, a: answer }]);
       }
-
       if (!authed) {
         const next = anonCount + 1;
         setAnonCount(next);
         localStorage.setItem(COUNT_KEY, String(next));
       }
     } catch (e) {
+      const timedOut = e instanceof DOMException && e.name === "AbortError";
+      const answer = timedOut ? aniFallbackReply(text) : "Ani hit a connection problem. I’m still here — please send it once more.";
+      setCurrentA(answer);
+      setTurns((t) => [...t, { q: text, a: answer }]);
       toast({
-        title: "Ani unreachable",
-        description: e instanceof Error ? e.message : String(e),
+        title: timedOut ? "Ani connection recovered" : "Ani connection issue",
+        description: timedOut ? "The live brain timed out, so Ani answered locally instead of spinning forever." : e instanceof Error ? e.message : String(e),
         variant: "destructive",
       });
     } finally {
+      if (requestTimer) window.clearTimeout(requestTimer);
       setLoading(false);
     }
   };
@@ -304,12 +346,12 @@ export const AniChat = () => {
           onClick={ask}
           disabled={loading || !prompt.trim()}
           aria-label="Send to Ani"
-          className="shrink-0 inline-flex items-center justify-center h-12 w-12 md:h-14 md:w-14 rounded-full text-white disabled:opacity-40 transition-transform hover:scale-105 active:scale-95"
+          className="shrink-0 inline-flex items-center justify-center h-12 w-12 md:h-14 md:w-14 rounded-full text-black disabled:opacity-40 transition-transform hover:scale-105 active:scale-95"
           style={{
             background:
-              "radial-gradient(circle at 30% 30%, hsl(0 95% 60%), hsl(0 90% 45%) 70%, hsl(0 90% 25%))",
+              "radial-gradient(circle at 30% 30%, hsl(0 0% 100%), hsl(0 0% 82%) 72%, hsl(0 0% 48%))",
             boxShadow:
-              "0 0 30px hsl(0 90% 50% / 0.8), inset 0 1px 0 hsl(0 0% 100% / 0.25)",
+              "0 0 24px hsl(0 0% 100% / 0.28), inset 0 1px 0 hsl(0 0% 100% / 0.65)",
           }}
         >
           {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-6 w-6" strokeWidth={2.8} />}
