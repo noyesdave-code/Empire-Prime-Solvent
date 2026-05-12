@@ -52,6 +52,7 @@ const Account = lazy(() => import("./pages/Account.tsx"));
 const AniProvider = lazy(() => import("./pages/AniProvider.tsx"));
 const AniLedger = lazy(() => import("./pages/AniLedger.tsx"));
 const EmpirePRPatch = lazy(() => import("./pages/EmpirePRPatch.tsx"));
+const AniBuilder = lazy(() => import("./pages/AniBuilder.tsx"));
 const Community = lazy(() => import("./pages/Community.tsx"));
 const Messages = lazy(() => import("./pages/Messages.tsx"));
 
@@ -110,6 +111,7 @@ const App = () => (
             <Route path="/boardroom/ani-provider" element={<AniProvider />} />
             <Route path="/boardroom/ani-ledger" element={<AniLedger />} />
             <Route path="/boardroom/empire-pr" element={<EmpirePRPatch />} />
+            <Route path="/boardroom/ani-builder" element={<AniBuilder />} />
             <Route path="/community" element={<Community />} />
             <Route path="/messages" element={<Messages />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
