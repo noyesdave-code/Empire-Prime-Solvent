@@ -87,12 +87,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm ci
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install dependencies from package.json
+        shell: bash
+        run: npm install --include=dev
       - name: Build
         run: npm run build -- --base=/\${{ github.event.repository.name }}/
       - name: SPA fallback + nojekyll
         run: |
           cp dist/index.html dist/404.html
+          mkdir -p dist/-
+          cp dist/index.html dist/-/index.html
           touch dist/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -101,12 +107,50 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      page_url: \${{ steps.deployment.outputs.page_url }}
     environment:
       name: github-pages
       url: \${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  smoke:
+    needs: deploy
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 5
+    steps:
+      - name: Post-deploy smoke tests
+        shell: bash
+        env:
+          SITE_URL: \${{ needs.deploy.outputs.page_url || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
+        run: |
+          set -euo pipefail
+          base="\${SITE_URL%/}"
+          check_route() {
+            local path="$1"
+            local label="$2"
+            local body status
+            for attempt in {1..18}; do
+              body="$(mktemp)"
+              status="$(curl -L -sS -o "$body" -w '%{http_code}' "$base$path?smoke=$GITHUB_RUN_ID-$attempt" || true)"
+              if { [ "$status" = "200" ] || [ "$status" = "404" ]; } && grep -q '<div id="root"' "$body"; then
+                echo "✓ $label route served SPA shell ($status)"
+                rm -f "$body"
+                return 0
+              fi
+              rm -f "$body"
+              sleep 5
+            done
+            echo "✗ $label route failed smoke test"
+            return 1
+          }
+          check_route "/" "home"
+          check_route "/community" "community"
+          check_route "/messages" "messages"
+          check_route "/spa-routing-smoke" "SPA fallback"
 `;
 }
 
