@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -29,9 +29,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install dependencies
-        shell: bash
-        run: npm install --include=dev
+      - run: npm ci
       - name: Build
         run: npm run build -- --base=/${{ github.event.repository.name }}/
       - name: SPA fallback + nojekyll
@@ -51,3 +49,37 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  smoke:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post-deploy smoke tests
+        shell: bash
+        env:
+          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: |
+          set -euo pipefail
+          base="${SITE_URL%/}"
+          check_route() {
+            local path="$1"
+            local label="$2"
+            local body status
+            for attempt in {1..18}; do
+              body="$(mktemp)"
+              status="$(curl -L -sS -o "$body" -w '%{http_code}' "$base$path?smoke=$GITHUB_RUN_ID-$attempt" || true)"
+              if { [ "$status" = "200" ] || [ "$status" = "404" ]; } && grep -q '<div id="root"' "$body"; then
+                echo "✓ $label route served SPA shell ($status)"
+                rm -f "$body"
+                return 0
+              fi
+              rm -f "$body"
+              sleep 5
+            done
+            echo "✗ $label route failed smoke test"
+            return 1
+          }
+          check_route "/" "home"
+          check_route "/community" "community"
+          check_route "/messages" "messages"
+          check_route "/spa-routing-smoke" "SPA fallback"
