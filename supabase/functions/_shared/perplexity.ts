@@ -1,7 +1,10 @@
-// Shared Perplexity helper. Uses sonar (cheap+fast). Returns text + citations.
+// Shared Perplexity helper. Uses sonar (cheap+fast). Returns text, citations,
+// and any media links surfaced by the provider.
 export interface PerplexityResult {
   text: string;
   citations: string[];
+  images: string[];
+  videos: string[];
   model: string;
 }
 
@@ -31,6 +34,12 @@ export async function perplexityAsk(
   return {
     text: j?.choices?.[0]?.message?.content ?? "",
     citations: Array.isArray(j?.citations) ? j.citations : [],
+    images: Array.isArray(j?.images)
+      ? j.images.map((x: unknown) => typeof x === "string" ? x : (x as { url?: string })?.url).filter(Boolean).slice(0, 8)
+      : [],
+    videos: Array.isArray(j?.videos)
+      ? j.videos.map((x: unknown) => typeof x === "string" ? x : (x as { url?: string })?.url).filter(Boolean).slice(0, 8)
+      : [],
     model,
   };
 }
