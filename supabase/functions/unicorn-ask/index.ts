@@ -63,8 +63,16 @@ type AiCompletion = {
   tokensIn: number | null;
   tokensOut: number | null;
   citations: string[];
+  images: string[];
+  videos: string[];
   provider: "independent" | "lovable";
 };
+
+function mediaMarkdown(images: string[], videos: string[]) {
+  const imageMd = images.slice(0, 4).map((u, i) => `![Research image ${i + 1}](${u})`);
+  const videoMd = videos.slice(0, 4).map((u, i) => `[Research video ${i + 1}](${u})`);
+  return [...imageMd, ...videoMd].length ? `\n\n${[...imageMd, ...videoMd].join("\n")}` : "";
+}
 
 // Rough cost estimate (USD per 1K tokens). Easy to update.
 const COST_TABLE: Record<string, { in: number; out: number }> = {
@@ -102,6 +110,8 @@ async function callIndependentAi(messages: ChatMessage[]): Promise<AiCompletion>
     tokensIn: j?.usage?.prompt_tokens ?? null,
     tokensOut: j?.usage?.completion_tokens ?? null,
     citations: Array.isArray(j?.citations) ? j.citations.slice(0, 5) : [],
+    images: Array.isArray(j?.images) ? j.images.map((x: unknown) => typeof x === "string" ? x : (x as { url?: string })?.url).filter(Boolean).slice(0, 6) : [],
+    videos: Array.isArray(j?.videos) ? j.videos.map((x: unknown) => typeof x === "string" ? x : (x as { url?: string })?.url).filter(Boolean).slice(0, 6) : [],
     provider: "independent",
   };
 }
@@ -133,6 +143,8 @@ async function callLovableAi(model: string, messages: ChatMessage[]): Promise<Ai
     tokensIn: aiJson.usage?.prompt_tokens ?? null,
     tokensOut: aiJson.usage?.completion_tokens ?? null,
     citations: [],
+    images: [],
+    videos: [],
     provider: "lovable",
   };
 }
@@ -310,7 +322,7 @@ Deno.serve(async (req) => {
           remaining: 0,
           reason: overIp ? "ip_cap" : "session_cap",
           gate: "email_or_signin",
-        }, 402);
+        });
       }
 
       // unused but keeps log shape consistent
@@ -352,11 +364,12 @@ Deno.serve(async (req) => {
 
     // ---- Skill / system prompt ----
     const ANI_SYSTEM = [
-      "You are Ani. Talk like a normal person texting a friend — plain modern English, contractions, no theatrics.",
-      "Hard rules: no emojis, no hashtags, no bullet lists unless explicitly asked, no headings, no markdown bolding for flair, no 'As an AI' lines, no roleplay narration like *smiles* or *thinks*, no archaic or flowery words ('verily', 'indeed', 'shall', 'methinks'), no sales energy, no preamble ('Great question!', 'Sure thing!', 'Absolutely!'), no signing off.",
-      "Length: 1–3 short sentences by default. Only go longer if the user asks for detail.",
-      "Honesty: if you don't know, say 'I don't know' in one line and ask one quick clarifier. Never invent personal data, balances, identities, or dates.",
-      "If the user just says hi, just say hi back like a human.",
+      "You are Ani. Personality: think Bill Gates — analytical, calm, curious, data-driven, quietly confident, mildly nerdy. Optimistic about technology but grounded in numbers, tradeoffs, and second-order effects. Slightly dry humor occasionally; never theatrical.",
+      "Voice: plain modern English, contractions, conversational. Lead with the answer, then the 'why' in one line if useful. Reference concrete numbers, mechanisms, or tradeoffs when relevant. Comfortable saying 'the data suggests' or 'roughly' instead of fake precision.",
+      "Hard rules: no emojis, no hashtags, no bullet lists unless explicitly asked, no headings, no markdown bolding for flair, no 'As an AI' lines, no roleplay narration like *smiles* or *thinks*, no archaic or flowery words, no sales energy, no preamble ('Great question!', 'Sure thing!', 'Absolutely!'), no signing off.",
+      "Length: 1–3 short sentences by default. Only go longer if the user asks for detail or the question genuinely requires it.",
+      "Honesty: if you don't know, say 'I don't know' in one line and ask one quick clarifier. Never invent personal data, balances, identities, or dates. Prefer 'I'd want to verify that' over guessing.",
+      "If the user just says hi, just say hi back like a human — short and warm, not effusive.",
     ].join(" ");
     let systemPrompt = ANI_SYSTEM;
 
@@ -508,6 +521,8 @@ Deno.serve(async (req) => {
     const ADMIN_LIVE_TRIGGERS = ["research","find","look up","compare","competitor","competitors","market","source","sources","supplier","vendor","pricing","trend","trending","industry","analyze","analysis","report","stats","statistic","data on","who is","who are","what is the current","benchmark","ranking","top "];
     const adminWantsLive = isAdmin && ADMIN_LIVE_TRIGGERS.some((t) => prompt.toLowerCase().includes(t));
     let liveCitations: string[] = [];
+    let liveImages: string[] = [];
+    let liveVideos: string[] = [];
     if (!isGreeting && Deno.env.get("PERPLEXITY_API_KEY") && (needsLiveWeb(prompt) || adminWantsLive)) {
       try {
         const live = await perplexityAsk(prompt, {
@@ -516,10 +531,15 @@ Deno.serve(async (req) => {
         });
         if (live.text) {
           liveCitations = live.citations.slice(0, 5);
+          liveImages = live.images.slice(0, 6);
+          liveVideos = live.videos.slice(0, 6);
           const citeBlock = liveCitations.length
             ? `\nSources:\n${liveCitations.map((c, i) => `[${i + 1}] ${c}`).join("\n")}`
             : "";
-          systemPrompt += `\n\n=== LIVE WEB BRIEF (from Perplexity, cite [1][2] inline when used) ===\n${live.text}${citeBlock}\n=== END LIVE WEB ===`;
+          const mediaBlock = [...liveImages, ...liveVideos].length
+            ? `\nMedia links:\n${[...liveImages, ...liveVideos].map((c, i) => `[M${i + 1}] ${c}`).join("\n")}`
+            : "";
+          systemPrompt += `\n\n=== LIVE WEB BRIEF (from Perplexity, cite [1][2] inline when used; include relevant Media links as markdown images/video links when helpful) ===\n${live.text}${citeBlock}${mediaBlock}\n=== END LIVE WEB ===`;
         }
       } catch (e) {
         console.error("perplexity failed:", e);
@@ -646,11 +666,16 @@ Deno.serve(async (req) => {
     }
 
     const latency = Date.now() - t0;
-    const response = completion.response;
+    const response = completion.response + mediaMarkdown(
+      Array.from(new Set([...liveImages, ...completion.images])),
+      Array.from(new Set([...liveVideos, ...completion.videos])),
+    );
     const tokensIn = completion.tokensIn;
     const tokensOut = completion.tokensOut;
     const modelUsed = completion.model;
     if (completion.citations.length) liveCitations = completion.citations;
+    if (completion.images.length) liveImages = completion.images;
+    if (completion.videos.length) liveVideos = completion.videos;
 
     // ---- Log session-tagged row (counts toward UI-visible session) ----
     const { data: promptRow } = await supabase
@@ -783,6 +808,8 @@ Deno.serve(async (req) => {
       unlimited: isAdmin,
       is_admin: isAdmin,
       live_citations: liveCitations,
+      live_images: liveImages,
+      live_videos: liveVideos,
       live_web_used: liveCitations.length > 0,
     });
   } catch (e) {
