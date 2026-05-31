@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import { Copy, RefreshCw, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import type { ChatMsg } from "@/hooks/useChatHistory";
-import { ChatImageGallery, extractMarkdownImages } from "@/components/ChatImageGallery";
+import { ChatImageGallery, ChatVideoLinks, extractMarkdownMedia } from "@/components/ChatImageGallery";
 
 type Props = {
   messages: ChatMsg[];
@@ -71,7 +71,7 @@ export function ChatMessageList({ messages, onRegenerate, loading, scrollRef }: 
             )}
           </div>
           {(() => {
-            const { images, text } = extractMarkdownImages(m.content);
+            const { images, videos, text } = extractMarkdownMedia(m.content);
             return (
               <>
                 {text.trim() && (
@@ -80,6 +80,7 @@ export function ChatMessageList({ messages, onRegenerate, loading, scrollRef }: 
                   </div>
                 )}
                 {images.length > 0 && <ChatImageGallery images={images} />}
+                {videos.length > 0 && <ChatVideoLinks videos={videos} />}
               </>
             );
           })()}
