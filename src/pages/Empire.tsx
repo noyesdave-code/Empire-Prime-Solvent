@@ -120,7 +120,7 @@ export default function Empire() {
         </h1>
       </header>
 
-      <section className="flex-1 mx-auto w-full max-w-6xl px-4 pb-6 grid gap-5 grid-rows-[2fr_1fr_3fr]" style={{ minHeight: "calc(100vh - 220px)" }}>
+      <section className="flex-1 mx-auto w-full max-w-6xl px-4 pb-6 grid gap-5 grid-rows-3" style={{ minHeight: "calc(100vh - 220px)" }}>
         <div className="flex flex-col p-6 min-h-0" style={boxBase}>
           <div className="text-xs uppercase tracking-[0.3em] mb-3 font-bold" style={{ color: PURPLE }}>
             Write prompt
@@ -135,7 +135,7 @@ export default function Empire() {
               }
             }}
             maxLength={4000}
-            placeholder="Type your prompt for Ani… (Enter to send)"
+            placeholder="Tell Ani what to build or research… (Enter to send)"
             className="flex-1 w-full resize-none rounded-xl px-4 py-4 text-lg focus:outline-none focus:ring-2"
             style={{
               background: JET,
@@ -177,7 +177,7 @@ export default function Empire() {
           </div>
           <div ref={aniScroll} className="flex-1 overflow-y-auto space-y-3">
             {aniMsgs.length === 0 && !loading ? (
-              <div style={{ color: DIM, fontStyle: "italic" }}>Awaiting your move.</div>
+              <div style={{ color: DIM, fontStyle: "italic" }}>Ani can build and research on his own. Give him the mission.</div>
             ) : (
               aniMsgs.map((m, i) => {
                 const { images, videos, text } = extractMarkdownMedia(m.content);
