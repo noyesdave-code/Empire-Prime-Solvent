@@ -4,6 +4,9 @@ import { ArrowUp, Loader2, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useJsonLd } from "@/hooks/useJsonLd";
 import { useAuth } from "@/hooks/useAuth";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { ChatImageGallery, ChatVideoLinks, extractMarkdownMedia } from "@/components/ChatImageGallery";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -175,11 +178,18 @@ export default function Empire() {
             {aniMsgs.length === 0 && !loading ? (
               <div style={{ color: DIM, fontStyle: "italic" }}>Awaiting your move.</div>
             ) : (
-              aniMsgs.map((m, i) => (
-                <div key={i} className="text-lg leading-relaxed whitespace-pre-wrap" style={{ color: WHITE }}>
-                  {m.content}
-                </div>
-              ))
+              aniMsgs.map((m, i) => {
+                const { images, videos, text } = extractMarkdownMedia(m.content);
+                return (
+                  <div key={i} className="text-lg leading-relaxed" style={{ color: WHITE }}>
+                    <div className="prose prose-invert max-w-none prose-a:text-purple-200">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+                    </div>
+                    <ChatImageGallery images={images} />
+                    <ChatVideoLinks videos={videos} />
+                  </div>
+                );
+              })
             )}
             {loading && (
               <div className="flex items-center gap-2 text-sm" style={{ color: PURPLE_SOFT }}>
