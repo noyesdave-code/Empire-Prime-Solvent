@@ -1,11 +1,27 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowUp, Loader2, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowUp, Loader2, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useJsonLd } from "@/hooks/useJsonLd";
+import { useAuth } from "@/hooks/useAuth";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 const SESSION_KEY = "empire_session_id_v1";
+const FREE_TURN_KEY = "empire_anon_turns_v1";
+const FREE_LIMIT = 10;
+
+const JET = "#1a1a1e";
+const PANEL = "#252529";
+const BORDER = "#8a42ff";
+const BORDER_SOFT = "#a970ff";
+const PURPLE = "#b347ff";
+const PURPLE_SOFT = "#d4a3ff";
+const PURPLE_GLOW = "#e8ccff";
+const WHITE = "#f0f0f5";
+const MUTED = "#c0c0d0";
+const DIM = "#9090a0";
+
 function sid() {
   if (typeof window === "undefined") return "ssr";
   let id = localStorage.getItem(SESSION_KEY);
@@ -16,20 +32,41 @@ function sid() {
   return id;
 }
 
-function ChatBox({ title, accent }: { title: string; accent: "red" | "white" }) {
+export default function Empire() {
+  const { user, loading: authLoading } = useAuth();
   const [prompt, setPrompt] = useState("");
+  const [sent, setSent] = useState("");
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState<Msg[]>([]);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [aniMsgs, setAniMsgs] = useState<Msg[]>([]);
+  const [turnsUsed, setTurnsUsed] = useState(0);
+  const aniScroll = useRef<HTMLDivElement | null>(null);
+
+  useJsonLd("empire-schema", [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "Empire",
+      url: "https://unicornaibuilder.lovable.app/empire",
+      description: "Empire.",
+    },
+  ]);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, loading]);
+    const stored = parseInt(localStorage.getItem(FREE_TURN_KEY) ?? "0", 10);
+    setTurnsUsed(Number.isFinite(stored) ? stored : 0);
+  }, []);
+
+  useEffect(() => {
+    aniScroll.current?.scrollTo({ top: aniScroll.current.scrollHeight, behavior: "smooth" });
+  }, [aniMsgs, loading]);
+
+  const gated = !user && turnsUsed >= FREE_LIMIT;
+  const turnsLeft = Math.max(0, FREE_LIMIT - turnsUsed);
 
   const send = async () => {
     const text = prompt.trim();
-    if (!text || loading) return;
-    setMessages((m) => [...m, { role: "user", content: text }]);
+    if (!text || loading || gated) return;
+    setSent(text);
     setPrompt("");
     setLoading(true);
     try {
@@ -38,9 +75,14 @@ function ChatBox({ title, accent }: { title: string; accent: "red" | "white" }) 
       });
       if (error) throw error;
       const reply = data?.response || data?.error || "Brain offline.";
-      setMessages((m) => [...m, { role: "assistant", content: reply }]);
+      setAniMsgs((m) => [...m, { role: "assistant", content: reply }]);
+      if (!user) {
+        const next = turnsUsed + 1;
+        setTurnsUsed(next);
+        localStorage.setItem(FREE_TURN_KEY, String(next));
+      }
     } catch (e) {
-      setMessages((m) => [
+      setAniMsgs((m) => [
         ...m,
         { role: "assistant", content: e instanceof Error ? e.message : "Unreachable." },
       ]);
@@ -49,140 +91,123 @@ function ChatBox({ title, accent }: { title: string; accent: "red" | "white" }) 
     }
   };
 
-  const ring = accent === "red" ? "#ff1a1a" : "#ffffff";
-  const glow =
-    accent === "red"
-      ? "0 0 40px rgba(255,26,26,0.25), inset 0 0 0 1px rgba(255,26,26,0.4)"
-      : "0 0 40px rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.25)";
+  if (authLoading) return null;
+
+  const boxBase: React.CSSProperties = {
+    background: PANEL,
+    border: `3px solid ${PURPLE}`,
+    borderRadius: 20,
+    boxShadow: `0 0 0 1px ${PURPLE_SOFT}44, 0 8px 40px ${PURPLE}33, inset 0 0 60px ${PURPLE}0a`,
+  };
 
   return (
-    <div
-      className="flex flex-col rounded-2xl bg-black/80 backdrop-blur-xl"
-      style={{ boxShadow: glow, height: 520 }}
-    >
-      <div
-        className="px-5 py-3 text-[11px] uppercase tracking-[0.35em] font-bold border-b"
-        style={{ color: ring, borderColor: `${ring}33` }}
-      >
-        {title}
-      </div>
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-        {messages.length === 0 && (
-          <p className="text-white/40 text-sm">Ask anything. The Empire answers.</p>
-        )}
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`text-sm leading-relaxed whitespace-pre-wrap rounded-lg px-3 py-2 ${
-              m.role === "user"
-                ? "bg-white/5 text-white ml-8"
-                : "bg-[#1a0000] text-white/90 mr-8 border border-[#ff1a1a]/20"
-            }`}
-          >
-            {m.content}
+    <main className="min-h-screen flex flex-col" style={{ background: JET, color: WHITE }}>
+      <header className="pt-8 pb-6 text-center">
+        <h1
+          className="font-extrabold tracking-tight leading-none"
+          style={{
+            color: PURPLE,
+            fontSize: "clamp(4rem, 16vw, 8rem)",
+            letterSpacing: "0",
+            textShadow: `0 0 30px ${PURPLE}88, 0 0 70px ${PURPLE}55, 0 0 120px ${PURPLE}33`,
+          }}
+        >
+          Empire
+        </h1>
+      </header>
+
+      <section className="flex-1 mx-auto w-full max-w-6xl px-4 pb-6 grid gap-5 grid-rows-[2fr_1fr_3fr]" style={{ minHeight: "calc(100vh - 220px)" }}>
+        <div className="flex flex-col p-6 min-h-0" style={boxBase}>
+          <div className="text-xs uppercase tracking-[0.3em] mb-3 font-bold" style={{ color: PURPLE }}>
+            Write prompt
           </div>
-        ))}
-        {loading && (
-          <div className="flex items-center gap-2 text-white/50 text-xs">
-            <Loader2 className="h-3 w-3 animate-spin" /> thinking…
-          </div>
-        )}
-      </div>
-      <div className="p-3 border-t" style={{ borderColor: `${ring}22` }}>
-        <div className="relative">
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 send();
               }
             }}
-            placeholder="Speak to the Empire… (Enter = new line · Cmd/Ctrl+Enter or arrow = send)"
-            rows={2}
-            className="w-full resize-none rounded-xl bg-black/60 px-4 py-3 pr-12 text-sm text-white placeholder:text-white/30 focus:outline-none"
-            style={{ border: `1px solid ${ring}44` }}
-          />
-          <button
-            onClick={send}
-            disabled={loading}
-            aria-label="Send"
-            className="absolute bottom-3 right-3 inline-flex h-9 w-9 items-center justify-center rounded-lg disabled:opacity-50 transition hover:scale-105"
-            style={{ background: ring, color: accent === "red" ? "#fff" : "#000" }}
-          >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function Empire() {
-  useJsonLd("empire-schema", [
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      name: "The Empire",
-      url: "https://unicornaibuilder.lovable.app/empire",
-      description: "The Empire — a zero-trust AI fortress.",
-    },
-  ]);
-
-  return (
-    <div className="min-h-screen w-full bg-black text-white relative overflow-hidden">
-      {/* ambient blood glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,0,0,0.25), transparent 60%), radial-gradient(ellipse 60% 40% at 50% 110%, rgba(255,0,0,0.15), transparent 60%)",
-        }}
-      />
-      {/* subtle grid */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-        }}
-      />
-
-      <main className="relative z-10 mx-auto max-w-6xl px-5 pt-20 pb-10 sm:pt-28">
-        <div className="text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#ff1a1a]/40 bg-[#1a0000]/60 px-3 py-1 text-[10px] uppercase tracking-[0.4em] text-[#ff5050]">
-            <Shield className="h-3 w-3" /> Zero-Trust Fortress · Online
-          </div>
-          <h1
-            className="mt-6 font-black tracking-tight leading-[0.9] text-white"
+            maxLength={4000}
+            placeholder="Type your prompt for Ani… (Enter to send)"
+            className="flex-1 w-full resize-none rounded-xl px-4 py-4 text-lg focus:outline-none focus:ring-2"
             style={{
-              fontSize: "clamp(3rem, 12vw, 8rem)",
-              textShadow:
-                "0 0 60px rgba(255,0,0,0.35), 0 0 120px rgba(255,0,0,0.15)",
+              background: JET,
+              color: WHITE,
+              border: `3px solid ${PURPLE_SOFT}`,
+              minHeight: 140,
             }}
-          >
-            THE <span style={{ color: "#ff1a1a" }}>EMPIRE</span>
-          </h1>
-          <p className="mt-4 text-white/60 text-sm sm:text-base max-w-xl mx-auto">
-            Twelve stacked layers. One unbreakable spine. Two minds. Speak — the Empire listens.
-          </p>
+          />
+          <div className="mt-4 flex items-center justify-between">
+            {!user ? (
+              <span className="text-xs uppercase tracking-wider" style={{ color: PURPLE_SOFT }}>
+                {turnsLeft} free turns left
+              </span>
+            ) : <span />}
+            <button
+              onClick={send}
+              disabled={loading || !prompt.trim() || gated}
+              aria-label="Send to Ani"
+              className="inline-flex items-center justify-center h-14 w-14 rounded-full disabled:opacity-40 transition-transform active:scale-95"
+              style={{ background: PURPLE, color: WHITE, border: `3px solid ${PURPLE_SOFT}`, boxShadow: `0 0 24px ${PURPLE}88` }}
+            >
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : <ArrowUp className="h-6 w-6" strokeWidth={2.8} />}
+            </button>
+          </div>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ChatBox title="◤ Crimson Mind" accent="red" />
-          <ChatBox title="◢ Ivory Mind" accent="white" />
+        <div className="flex flex-col p-6 min-h-0" style={boxBase}>
+          <div className="text-xs uppercase tracking-[0.3em] mb-3 font-bold" style={{ color: PURPLE }}>
+            Your prompt
+          </div>
+          <div className="flex-1 overflow-y-auto text-lg whitespace-pre-wrap" style={{ color: WHITE }}>
+            {sent || <span style={{ color: DIM, fontStyle: "italic" }}>Your sent prompt appears here.</span>}
+          </div>
         </div>
-      </main>
 
-      <footer className="relative z-10 border-t border-white/5 mt-10 py-6 px-5 text-center text-[10px] uppercase tracking-[0.3em] text-white/40">
-        © {new Date().getFullYear()} The Empire · All rights reserved ·{" "}
-        <a href="/terms" className="hover:text-[#ff5050]">Terms</a> ·{" "}
-        <a href="/privacy" className="hover:text-[#ff5050]">Privacy</a>
+        <div className="flex flex-col p-6 min-h-0" style={boxBase}>
+          <div className="text-xs uppercase tracking-[0.3em] mb-3 font-bold" style={{ color: PURPLE }}>
+            Ani
+          </div>
+          <div ref={aniScroll} className="flex-1 overflow-y-auto space-y-3">
+            {aniMsgs.length === 0 && !loading ? (
+              <div style={{ color: DIM, fontStyle: "italic" }}>Awaiting your move.</div>
+            ) : (
+              aniMsgs.map((m, i) => (
+                <div key={i} className="text-lg leading-relaxed whitespace-pre-wrap" style={{ color: WHITE }}>
+                  {m.content}
+                </div>
+              ))
+            )}
+            {loading && (
+              <div className="flex items-center gap-2 text-sm" style={{ color: PURPLE_SOFT }}>
+                <Loader2 className="h-4 w-4 animate-spin" /> thinking…
+              </div>
+            )}
+            {gated && (
+              <div className="rounded-xl px-4 py-4 text-sm" style={{ background: JET, border: `3px solid ${PURPLE}` }}>
+                <p className="font-bold mb-2" style={{ color: PURPLE_SOFT }}>Free turns used.</p>
+                <Link
+                  to="/auth?next=/empire"
+                  className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-bold"
+                  style={{ background: PURPLE, color: WHITE, border: `2px solid ${PURPLE_SOFT}` }}
+                >
+                  <LogIn className="h-3 w-3" /> Sign in
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+
+      <footer className="py-4 px-5 text-center text-[10px] uppercase tracking-[0.3em]" style={{ color: DIM }}>
+        © {new Date().getFullYear()} PGVA Ventures LLC ·{" "}
+        <a href="/terms" className="hover:underline" style={{ color: PURPLE_SOFT }}>Terms</a> ·{" "}
+        <a href="/privacy" className="hover:underline" style={{ color: PURPLE_SOFT }}>Privacy</a>
       </footer>
-    </div>
+    </main>
   );
 }
