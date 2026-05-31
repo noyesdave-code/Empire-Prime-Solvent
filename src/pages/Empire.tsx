@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ChatImageGallery, ChatVideoLinks, extractMarkdownMedia } from "@/components/ChatImageGallery";
-import { PennyTipButton } from "@/components/PennyTipButton";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -36,14 +35,23 @@ function sid() {
   return id;
 }
 
+const AUTO_PROMPTS = [
+  "Research one fresh growth lever for Empire right now. Cite live sources [1][2]. Then build the next move as exact copy, component structure, and patch-ready instructions.",
+  "Find one underserved customer pain this week. Cite [1][2]. Then build the exact product page, checkout hook, and CTA copy to capture it.",
+  "Scan for one viral marketing angle trending in the last 7 days. Cite [1][2]. Then build the post, landing hook, and one deploy-ready experiment.",
+  "Identify one competitor move in the last 30 days. Cite [1][2]. Then build our counter-move: feature, price, homepage sentence, and launch checklist.",
+];
+
 export default function Empire() {
   const { user, loading: authLoading } = useAuth();
   const [prompt, setPrompt] = useState("");
-  const [sent, setSent] = useState("");
   const [loading, setLoading] = useState(false);
   const [aniMsgs, setAniMsgs] = useState<Msg[]>([]);
   const [turnsUsed, setTurnsUsed] = useState(0);
+  const [autoOn, setAutoOn] = useState(true);
   const aniScroll = useRef<HTMLDivElement | null>(null);
+  const autoIdx = useRef(0);
+
 
   useJsonLd("empire-schema", [
     {
@@ -70,9 +78,9 @@ export default function Empire() {
   const send = async () => {
     const text = prompt.trim();
     if (!text || loading || gated) return;
-    setSent(text);
     setPrompt("");
     setLoading(true);
+    setAniMsgs((m) => [...m, { role: "user", content: text }]);
     try {
       const { data, error } = await supabase.functions.invoke("unicorn-ask", {
         body: { prompt: text, skill: "business-builder", session_id: sid() },
@@ -94,6 +102,41 @@ export default function Empire() {
       setLoading(false);
     }
   };
+
+  const runAutoTick = async () => {
+    if (loading) return;
+    const text = AUTO_PROMPTS[autoIdx.current % AUTO_PROMPTS.length];
+    autoIdx.current += 1;
+    setLoading(true);
+    setAniMsgs((m) => [...m, { role: "user", content: `🤖 auto: ${text}` }]);
+    try {
+      const { data, error } = await supabase.functions.invoke("unicorn-ask", {
+        body: { prompt: text, skill: "business-builder", session_id: sid() },
+      });
+      if (error) throw error;
+      const reply = data?.response || data?.error || "Brain offline.";
+      setAniMsgs((m) => [...m, { role: "assistant", content: reply }]);
+    } catch (e) {
+      setAniMsgs((m) => [
+        ...m,
+        { role: "assistant", content: e instanceof Error ? e.message : "Auto tick failed." },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Autonomous loop — admin/auth only. Fires immediately + every 90s.
+  useEffect(() => {
+    if (!autoOn || !user) return;
+    runAutoTick();
+    const id = window.setInterval(() => {
+      if (document.visibilityState === "visible") runAutoTick();
+    }, 90_000);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOn, user]);
+
 
   if (authLoading) return null;
 
@@ -120,8 +163,8 @@ export default function Empire() {
         </h1>
       </header>
 
-      <section className="flex-1 mx-auto w-full max-w-6xl px-4 pb-6 grid gap-5 grid-rows-3" style={{ minHeight: "calc(100vh - 220px)" }}>
-        <div className="flex flex-col p-6 min-h-0" style={boxBase}>
+      <section className="mx-auto w-full max-w-3xl px-4 pb-6 grid gap-5">
+        <div className="flex flex-col p-6" style={boxBase}>
           <div className="text-xs uppercase tracking-[0.3em] mb-3 font-bold" style={{ color: PURPLE }}>
             Write prompt
           </div>
@@ -136,12 +179,12 @@ export default function Empire() {
             }}
             maxLength={4000}
             placeholder="Tell Ani what to build or research… (Enter to send)"
-            className="flex-1 w-full resize-none rounded-xl px-4 py-4 text-lg focus:outline-none focus:ring-2"
+            className="w-full resize-none rounded-xl px-4 py-4 text-lg focus:outline-none focus:ring-2"
             style={{
               background: JET,
               color: WHITE,
               border: `3px solid ${PURPLE_SOFT}`,
-              minHeight: 140,
+              height: 140,
             }}
           />
           <div className="mt-4 flex items-center justify-between">
@@ -162,20 +205,27 @@ export default function Empire() {
           </div>
         </div>
 
-        <div className="flex flex-col p-6 min-h-0" style={boxBase}>
-          <div className="text-xs uppercase tracking-[0.3em] mb-3 font-bold" style={{ color: PURPLE }}>
-            Your prompt
+        <div className="flex flex-col p-6" style={boxBase}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs uppercase tracking-[0.3em] font-bold" style={{ color: PURPLE }}>
+              Ani
+            </div>
+            {user && (
+              <button
+                onClick={() => setAutoOn((v) => !v)}
+                className="text-[10px] uppercase tracking-wider px-2 py-1 rounded-md font-bold"
+                style={{
+                  background: autoOn ? PURPLE : "transparent",
+                  color: autoOn ? WHITE : PURPLE_SOFT,
+                  border: `2px solid ${PURPLE_SOFT}`,
+                }}
+                title="Ani researches + builds on his own every 90s"
+              >
+                {autoOn ? "● auto on" : "auto off"}
+              </button>
+            )}
           </div>
-          <div className="flex-1 overflow-y-auto text-lg whitespace-pre-wrap" style={{ color: WHITE }}>
-            {sent || <span style={{ color: DIM, fontStyle: "italic" }}>Your sent prompt appears here.</span>}
-          </div>
-        </div>
-
-        <div className="flex flex-col p-6 min-h-0" style={boxBase}>
-          <div className="text-xs uppercase tracking-[0.3em] mb-3 font-bold" style={{ color: PURPLE }}>
-            Ani
-          </div>
-          <div ref={aniScroll} className="flex-1 overflow-y-auto space-y-3">
+          <div ref={aniScroll} className="overflow-y-auto space-y-3" style={{ maxHeight: 360 }}>
             {aniMsgs.length === 0 && !loading ? (
               <div style={{ color: DIM, fontStyle: "italic" }}>Ani can build and research on his own. Give him the mission.</div>
             ) : (
@@ -212,14 +262,6 @@ export default function Empire() {
           </div>
         </div>
       </section>
-
-
-      <div className="py-6 px-5 text-center">
-        <PennyTipButton />
-        <div className="text-[10px] mt-2" style={{ color: DIM }}>
-          Tips fuel Ani's research. 100% goes to the jar. Withdrawable any time.
-        </div>
-      </div>
 
       <footer className="py-4 px-5 text-center text-[10px] uppercase tracking-[0.3em]" style={{ color: DIM }}>
         © {new Date().getFullYear()} PGVA Ventures LLC ·{" "}
