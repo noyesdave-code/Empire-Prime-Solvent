@@ -1,5 +1,5 @@
 name: Deploy to GitHub Pages
-# redeploy trigger: 2026-05-31 empire-hard-refresh
+# redeploy trigger: 2026-05-31 ani-two-box-autobuild
 
 on:
   push:
