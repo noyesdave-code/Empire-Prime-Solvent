@@ -1,5 +1,5 @@
 // Build-attempt gate for the Empire IDE.
-// Authenticated users get 10 free build attempts (run + Ani builds + deploys).
+// Authenticated users get 100 free build attempts (run + Ani builds + deploys).
 // Owner/admin and active subscribers are unlimited.
 // Returns { allowed, used, limit, requires_payment, reason } so the client can show a paywall.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -10,7 +10,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const FREE_LIMIT = 10;
+const FREE_LIMIT = 100;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
