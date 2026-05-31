@@ -14,7 +14,7 @@ export type BuildAttemptStatus = {
 };
 
 const DEFAULT: BuildAttemptStatus = {
-  allowed: true, used: 0, limit: 10, requiresPayment: false, reason: null,
+  allowed: true, used: 0, limit: 100, requiresPayment: false, reason: null,
 };
 
 export function useBuildAttempts() {
@@ -37,7 +37,7 @@ export function useBuildAttempts() {
         setStatus({
           allowed: !!data.allowed,
           used: Number(data.used ?? 0),
-          limit: Number(data.limit ?? 10),
+          limit: Number(data.limit ?? 100),
           requiresPayment: !!data.requires_payment,
           reason: data.reason ?? null,
         });
@@ -67,7 +67,7 @@ export function useBuildAttempts() {
       const next: BuildAttemptStatus = {
         allowed: !!data.allowed,
         used: Number(data.used ?? 0),
-        limit: Number(data.limit ?? 10),
+        limit: Number(data.limit ?? 100),
         requiresPayment: !!data.requires_payment,
         reason: data.reason ?? null,
       };
