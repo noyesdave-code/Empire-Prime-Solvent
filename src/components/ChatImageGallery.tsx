@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, ChevronLeft, ChevronRight, PlayCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 type Img = { src: string; alt?: string };
+type Video = { href: string; label?: string };
 
 async function downloadImage(src: string, alt?: string) {
   try {
@@ -111,6 +112,26 @@ export function ChatImageGallery({ images }: { images: Img[] }) {
   );
 }
 
+export function ChatVideoLinks({ videos }: { videos: Video[] }) {
+  if (!videos.length) return null;
+  return (
+    <div className="my-3 grid gap-2">
+      {videos.map((v, i) => (
+        <a
+          key={`${v.href}-${i}`}
+          href={v.href}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 rounded-lg border border-[hsl(var(--emerald-glow))/45] bg-background/55 px-3 py-2 text-xs font-semibold text-fluoro-white hover:bg-background/80"
+        >
+          <PlayCircle className="h-4 w-4" />
+          {v.label || `Research video ${i + 1}`}
+        </a>
+      ))}
+    </div>
+  );
+}
+
 // Extract all markdown image tokens from a message (returns the images and the
 // remaining markdown text with those images stripped out).
 const IMG_RE = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
@@ -121,4 +142,18 @@ export function extractMarkdownImages(text: string): { images: Img[]; text: stri
     return "";
   });
   return { images, text: cleaned };
+}
+
+const VIDEO_LINK_RE = /\[([^\]]*(?:video|watch|youtube|vimeo)[^\]]*)\]\((https?:\/\/[^)\s]+)\)/gi;
+export function extractMarkdownMedia(text: string): { images: Img[]; videos: Video[]; text: string } {
+  const { images, text: withoutImages } = extractMarkdownImages(text);
+  const videos: Video[] = [];
+  const cleaned = withoutImages.replace(VIDEO_LINK_RE, (m, label, href) => {
+    if (/(youtube\.com|youtu\.be|vimeo\.com|dailymotion\.com|archive\.org\/details|\.mp4|\.webm|\.mov)(\?|#|$|\/)/i.test(String(href))) {
+      videos.push({ href: String(href), label: String(label || "Research video") });
+      return "";
+    }
+    return m;
+  });
+  return { images, videos, text: cleaned };
 }
