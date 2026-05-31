@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ChatImageGallery, ChatVideoLinks, extractMarkdownMedia } from "@/components/ChatImageGallery";
+import { PennyTipButton } from "@/components/PennyTipButton";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -212,6 +213,13 @@ export default function Empire() {
         </div>
       </section>
 
+
+      <div className="py-6 px-5 text-center">
+        <PennyTipButton />
+        <div className="text-[10px] mt-2" style={{ color: DIM }}>
+          Tips fuel Ani's research. 100% goes to the jar. Withdrawable any time.
+        </div>
+      </div>
 
       <footer className="py-4 px-5 text-center text-[10px] uppercase tracking-[0.3em]" style={{ color: DIM }}>
         © {new Date().getFullYear()} PGVA Ventures LLC ·{" "}

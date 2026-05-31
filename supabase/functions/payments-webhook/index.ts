@@ -93,7 +93,28 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
   try {
     const customData = data?.customData ?? {};
     const intent = customData.intent;
-    if (intent !== 'product_checkout' && !customData.fleet_id && !customData.tier) return;
+
+    // Ani Penny Jar — log every completed tip into the ledger (idempotent on transaction id).
+    const items = data?.items ?? data?.details?.lineItems ?? [];
+    const isPennyTip = items.some((it: any) =>
+      (it?.price?.importMeta?.externalId ?? it?.priceId ?? "") === "ani_penny_tip"
+    ) || intent === "ani_penny_tip";
+    if (isPennyTip) {
+      const totals = data?.details?.totals ?? data?.totals ?? {};
+      const cents = Number(totals.total ?? totals.grandTotal ?? 0) || 0;
+      if (cents > 0) {
+        await getSupabase().from("penny_jar_ledger").upsert({
+          paddle_transaction_id: data?.id ?? null,
+          cents,
+          source: "tip",
+          note: customData.note ?? null,
+          tipper_email: data?.customer?.email ?? customData.email ?? null,
+          status: "completed",
+        }, { onConflict: "paddle_transaction_id" });
+      }
+    }
+
+    if (intent !== 'product_checkout' && !customData.fleet_id && !customData.tier && !isPennyTip) return;
 
     const sb = getSupabase();
 
@@ -109,6 +130,7 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
 
         const { data: order } = await sb.from('orders').insert({
           paddle_order_id: data?.id ?? null,
+          user_id: customData.userId ?? null,
           email,
           product_id: sku,
           sku,
@@ -153,6 +175,28 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
   }
 }
 
+async function handlePaymentFailed(data: any, env: PaddleEnv) {
+  try {
+    const customData = data?.customData ?? {};
+    const totals = data?.details?.totals ?? data?.totals ?? {};
+    const reason = data?.payments?.[0]?.errorCode
+      ?? data?.payments?.[0]?.error_code
+      ?? data?.payments?.[0]?.status
+      ?? 'declined';
+    await getSupabase().from('payment_failures').upsert({
+      user_id: customData.userId ?? null,
+      email: data?.customer?.email ?? customData.email ?? null,
+      paddle_transaction_id: data?.id ?? null,
+      paddle_subscription_id: data?.subscriptionId ?? null,
+      amount_cents: Number(totals.total ?? totals.grandTotal ?? 0) || null,
+      currency: data?.currencyCode ?? 'USD',
+      failure_reason: String(reason),
+      environment: env,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'paddle_transaction_id' });
+  } catch (e) { console.error('handlePaymentFailed error', e); }
+}
+
 async function handleWebhook(req: Request, env: PaddleEnv) {
   const event = await verifyWebhook(req, env);
   console.log('Webhook event:', event.eventType, 'env:', env);
@@ -165,7 +209,16 @@ async function handleWebhook(req: Request, env: PaddleEnv) {
     case EventName.SubscriptionCanceled:
       await handleSubscriptionCanceled(event.data, env); break;
     case EventName.TransactionCompleted:
-      await handleTransactionCompleted(event.data, env); break;
+      await handleTransactionCompleted(event.data, env);
+      // Resolve any prior failure for this txn
+      if (event.data?.id) {
+        await getSupabase().from('payment_failures')
+          .update({ resolved_at: new Date().toISOString() })
+          .eq('paddle_transaction_id', event.data.id);
+      }
+      break;
+    case EventName.TransactionPaymentFailed:
+      await handlePaymentFailed(event.data, env); break;
     default:
       console.log('Unhandled event:', event.eventType);
   }

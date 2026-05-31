@@ -21,6 +21,7 @@ import { LearningStackPanel } from "@/components/LearningStackPanel";
 import { AniLiveMonitor } from "@/components/AniLiveMonitor";
 import { AniMediaStudio } from "@/components/AniMediaStudio";
 import { AniDaveInbox } from "@/components/AniDaveInbox";
+import { PennyJarPanel } from "@/components/PennyJarPanel";
 import { useIdleLock } from "@/hooks/useIdleLock";
 
 type Doc = { id: string; title: string; url: string; category: string | null; notes: string | null };
@@ -468,6 +469,7 @@ export default function Boardroom() {
 
           <TabsContent value="learning" className="mt-4 space-y-4">
             <AniDaveInbox />
+            <PennyJarPanel />
             <LearningStackPanel />
           </TabsContent>
 
