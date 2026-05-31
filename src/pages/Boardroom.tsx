@@ -10,13 +10,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
-import { Crown, FileText, Video, Sparkles, BarChart3, LogOut, ExternalLink, Trash2, MessageCircle, Send, Eraser, Building2, FileDown, ChevronRight, ListChecks, Shield, Layout, Factory, Phone, Rocket, Loader2, CheckCircle2, GitPullRequest } from "lucide-react";
+import { Crown, FileText, Video, Sparkles, BarChart3, LogOut, ExternalLink, Trash2, MessageCircle, Send, Eraser, Building2, FileDown, ChevronRight, ListChecks, Shield, Layout, Factory, Phone, Rocket, Loader2, CheckCircle2, GitPullRequest, Brain, Radio, Image as ImageIcon } from "lucide-react";
 import { RenewalAgentButton } from "@/components/RenewalAgentButton";
 import { FounderChecklist } from "@/components/FounderChecklist";
 import { DefenseDepartment } from "@/components/DefenseDepartment";
 import { UnicornSandbox } from "@/components/UnicornSandbox";
 import { DefenseGate } from "@/components/DefenseGate";
 import { FleetDirectory } from "@/components/FleetDirectory";
+import { LearningStackPanel } from "@/components/LearningStackPanel";
+import { AniLiveMonitor } from "@/components/AniLiveMonitor";
+import { AniMediaStudio } from "@/components/AniMediaStudio";
+import { AniDaveInbox } from "@/components/AniDaveInbox";
 import { useIdleLock } from "@/hooks/useIdleLock";
 
 type Doc = { id: string; title: string; url: string; category: string | null; notes: string | null };
@@ -368,6 +372,9 @@ export default function Boardroom() {
           <div className="w-full overflow-x-auto -mx-1 px-1">
             <TabsList className="inline-flex w-max min-w-full gap-1">
               <TabsTrigger value="empire"><Building2 className="h-4 w-4 mr-1" />Empire</TabsTrigger>
+              <TabsTrigger value="learning"><Brain className="h-4 w-4 mr-1" />Learning</TabsTrigger>
+              <TabsTrigger value="monitor"><Radio className="h-4 w-4 mr-1" />Monitor</TabsTrigger>
+              <TabsTrigger value="media"><ImageIcon className="h-4 w-4 mr-1" />Media</TabsTrigger>
               <TabsTrigger value="sandbox"><Layout className="h-4 w-4 mr-1" />Sandbox</TabsTrigger>
               <TabsTrigger value="defense"><Shield className="h-4 w-4 mr-1" />Defense</TabsTrigger>
               <TabsTrigger value="fleet"><Factory className="h-4 w-4 mr-1" />Fleet</TabsTrigger>
@@ -457,6 +464,19 @@ export default function Boardroom() {
 
           <TabsContent value="sandbox" className="mt-4">
             <UnicornSandbox />
+          </TabsContent>
+
+          <TabsContent value="learning" className="mt-4 space-y-4">
+            <AniDaveInbox />
+            <LearningStackPanel />
+          </TabsContent>
+
+          <TabsContent value="monitor" className="mt-4">
+            <AniLiveMonitor />
+          </TabsContent>
+
+          <TabsContent value="media" className="mt-4">
+            <AniMediaStudio />
           </TabsContent>
 
           <TabsContent value="defense" className="mt-4">

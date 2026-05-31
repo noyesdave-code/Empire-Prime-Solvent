@@ -119,6 +119,17 @@ Usage in last 6h: ${totalCalls} calls, ${errorCount} errors.`;
     updated_at: new Date().toISOString(),
   }).eq("id", 1);
 
+  // Drop a Dave-inbox note so it lights up next time he hits /boardroom.
+  const ideasSection = summary.split(/##\s*Ideas to help humanity/i)[1]?.split(/^##\s/m)[0]?.trim();
+  if (ideasSection) {
+    await db.from("ani_dave_inbox").insert({
+      kind: "idea",
+      title: `New ideas — ${new Date().toISOString().slice(0, 10)}`,
+      body: ideasSection.slice(0, 4000),
+      source: "ani-reflect",
+    });
+  }
+
   return new Response(JSON.stringify({
     ok: true,
     drafted: !insErr,
