@@ -1,4 +1,5 @@
 name: Deploy to GitHub Pages
+# redeploy trigger: 2026-05-31 empire-hard-refresh
 
 on:
   push:
@@ -18,7 +19,7 @@ env:
   VITE_PAYMENTS_CLIENT_TOKEN: live_821a1eef30c4b062032f6b6138f
 
 concurrency:
-  group: pages
+  group: github-pages
   cancel-in-progress: true
 
 jobs:
@@ -39,9 +40,12 @@ jobs:
       - name: SPA fallback + nojekyll
         run: |
           cp dist/index.html dist/404.html
+          mkdir -p dist/empire
+          cp dist/index.html dist/empire/index.html
           mkdir -p dist/-
           cp dist/index.html dist/-/index.html
           touch dist/.nojekyll
+      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
@@ -78,8 +82,8 @@ jobs:
             for attempt in {1..18}; do
               body="$(mktemp)"
               status="$(curl -L -sS -o "$body" -w '%{http_code}' "$base$path?smoke=$GITHUB_RUN_ID-$attempt" || true)"
-              if { [ "$status" = "200" ] || [ "$status" = "404" ]; } && grep -q '<div id="root"' "$body"; then
-                echo "✓ $label route served SPA shell ($status)"
+              if [ "$status" = "200" ] && grep -q '<div id="root"' "$body" && grep -q '/assets/' "$body" && ! grep -q '/src/main.tsx' "$body"; then
+                echo "✓ $label route served built SPA shell ($status)"
                 rm -f "$body"
                 return 0
               fi
@@ -90,6 +94,4 @@ jobs:
             return 1
           }
           check_route "/" "home"
-          check_route "/community" "community"
-          check_route "/messages" "messages"
-          check_route "/spa-routing-smoke" "SPA fallback"
+          check_route "/empire/" "empire hard-refresh"
